@@ -138,25 +138,21 @@ class EnvironmentAttributeDecodeTest {
         assertEquals(original, EnvironmentAttributesUtil.toNms(EnvironmentAttributeMap.decode(original)));
     }
 
-    /**
-     * Sound-carrying attributes are the one thing that does not round trip identically: Wyck's sound
-     * wrappers encode as {@code Holder.direct}, so a registry reference decodes with the right key but
-     * comes back inlined. The asymmetry is on the encode side; the decoded value itself is faithful.
-     */
+    /** Registered sounds re-encode as their registry reference, so they serialize as a key rather than inline. */
     @Test
-    void decodedSoundsKeepTheirKeyButReEncodeAsDirectHolders() {
+    void decodedSoundsReEncodeAsTheirRegisteredHolders() {
         net.minecraft.world.attribute.EnvironmentAttributeMap original = minecraftMap()
             .set(net.minecraft.world.attribute.EnvironmentAttributes.AMBIENT_SOUNDS, net.minecraft.world.attribute.AmbientSounds.LEGACY_CAVE_SETTINGS)
+            .set(net.minecraft.world.attribute.EnvironmentAttributes.BACKGROUND_MUSIC, net.minecraft.world.attribute.BackgroundMusic.OVERWORLD)
             .build();
 
         AmbientSounds decoded = assertInstanceOf(AmbientSounds.class,
             EnvironmentAttributeMap.decode(original).get(EnvironmentAttributes.AMBIENT_SOUNDS));
         assertEquals(ResourceKey.minecraft("ambient.cave"), decoded.mood().orElseThrow().soundEvent().location());
 
-        net.minecraft.world.attribute.AmbientSounds reEncoded =
-            sounds(EnvironmentAttributesUtil.toNms(EnvironmentAttributeMap.decode(original)));
-        assertEquals(sounds(original).mood().orElseThrow().soundEvent().value(), reEncoded.mood().orElseThrow().soundEvent().value());
-        assertInstanceOf(net.minecraft.core.Holder.Direct.class, reEncoded.mood().orElseThrow().soundEvent());
+        net.minecraft.world.attribute.EnvironmentAttributeMap reEncoded = EnvironmentAttributesUtil.toNms(EnvironmentAttributeMap.decode(original));
+        assertEquals(original, reEncoded);
+        assertInstanceOf(net.minecraft.core.Holder.Reference.class, sounds(reEncoded).mood().orElseThrow().soundEvent());
     }
 
     private static net.minecraft.world.attribute.AmbientSounds sounds(net.minecraft.world.attribute.EnvironmentAttributeMap map) {

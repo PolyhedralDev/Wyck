@@ -13,7 +13,7 @@ public record AmbientSoundsImpl(@Override Optional<SoundEvent> loop, @Override O
     @Override
     public Object toMinecraft() {
         return new net.minecraft.world.attribute.AmbientSounds(
-            this.loop.map(SoundEvent::<net.minecraft.sounds.SoundEvent>asHandle).map(net.minecraft.core.Holder::direct),
+            this.loop.map(SoundEventHolders::holder),
             this.mood.map(AmbientMoodSettings::asHandle),
             this.additions.stream().map(AmbientAdditionsSettings::<net.minecraft.world.attribute.AmbientAdditionsSettings>asHandle).toList()
         );

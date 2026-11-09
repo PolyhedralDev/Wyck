@@ -10,7 +10,7 @@ public record AmbientMoodSettingsImpl(@Override SoundEvent soundEvent, @Override
     @Override
     public Object toMinecraft() {
         return new net.minecraft.world.attribute.AmbientMoodSettings(
-            net.minecraft.core.Holder.direct(this.soundEvent.asHandle()),
+            SoundEventHolders.holder(this.soundEvent),
             this.tickDelay,
             this.blockSearchExtent,
             this.soundPositionOffset

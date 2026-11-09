@@ -9,7 +9,7 @@ public record AmbientAdditionsSettingsImpl(@Override SoundEvent soundEvent, @Ove
     @Override
     public Object toMinecraft() {
         return new net.minecraft.world.attribute.AmbientAdditionsSettings(
-            net.minecraft.core.Holder.direct(this.soundEvent.asHandle()),
+            SoundEventHolders.holder(this.soundEvent),
             this.tickChance
         );
     }

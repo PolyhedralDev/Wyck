@@ -22,6 +22,7 @@ import java.util.Optional;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @NullMarked
@@ -75,6 +76,27 @@ class SoundDecodeTest {
         AmbientAdditionsSettings additions = decoded.additions().getFirst();
         assertEquals(0.0111, additions.tickChance());
         assertEquals(ResourceKey.minecraft("ambient.basalt_deltas.additions"), additions.soundEvent().location());
+    }
+
+    @Test
+    void registeredSoundsEncodeAsTheirRegistryReference() {
+        net.minecraft.sounds.Music original = new net.minecraft.sounds.Music(SoundEvents.MUSIC_GAME, 100, 200, false);
+
+        net.minecraft.sounds.Music reEncoded = Music.decode(original).asHandle();
+
+        assertSame(SoundEvents.MUSIC_GAME, reEncoded.sound());
+        assertEquals(original, reEncoded);
+    }
+
+    @Test
+    void unregisteredSoundsStayDirect() {
+        net.minecraft.sounds.Music unregistered = Music.of(SoundEvent.variableRange(ResourceKey.of("wyck:not_a_sound")), 1, 2, false).asHandle();
+        assertInstanceOf(Holder.Direct.class, unregistered.sound());
+
+        // a registered key with a different range is a different sound event
+        net.minecraft.sounds.Music reRanged = Music.of(SoundEvent.fixedRange("music.game", 16.0F), 1, 2, false).asHandle();
+        assertInstanceOf(Holder.Direct.class, reRanged.sound());
+        assertEquals(16.0F, reRanged.sound().value().fixedRange().orElseThrow());
     }
 
     /** The two component trees only meet through json, in both directions. */
