@@ -2,6 +2,7 @@ package dev.wyck.util.attribute;
 
 import dev.wyck.environment.attribute.EnvironmentAttribute;
 import dev.wyck.environment.attribute.EnvironmentAttributeMap;
+import net.minecraft.world.attribute.modifier.AttributeModifier;
 import net.minecraft.world.level.biome.Biome;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
@@ -80,10 +81,11 @@ public final class EnvironmentAttributesUtil {
     private static <V, A> void modify(net.minecraft.world.attribute.EnvironmentAttributeMap.Builder builder, EnvironmentAttributeMap.Modification<?, ?> modification) {
         EnvironmentAttributeMap.Modification<V, A> typed = (EnvironmentAttributeMap.Modification<V, A>) modification;
         net.minecraft.world.attribute.EnvironmentAttribute<V> attribute = typed.attribute().asHandle();
+        AttributeModifier<V, A> modifier = AttributeModifiersUtil.modifier(typed);
         builder.modify(
             attribute,
-            AttributeModifiersUtil.modifier(typed),
-            AttributeModifiersUtil.argument(typed.attribute(), typed.argument())
+            modifier,
+            AttributeModifiersUtil.argument(modifier, typed.attribute(), typed.argument())
         );
     }
 
@@ -91,10 +93,11 @@ public final class EnvironmentAttributesUtil {
     private static <V, A> void modify(Biome.BiomeBuilder builder, EnvironmentAttributeMap.Modification<?, ?> modification) {
         EnvironmentAttributeMap.Modification<V, A> typed = (EnvironmentAttributeMap.Modification<V, A>) modification;
         net.minecraft.world.attribute.EnvironmentAttribute<V> attribute = typed.attribute().asHandle();
+        AttributeModifier<V, A> modifier = AttributeModifiersUtil.modifier(typed);
         builder.modifyAttribute(
             attribute,
-            AttributeModifiersUtil.modifier(typed),
-            AttributeModifiersUtil.argument(typed.attribute(), typed.argument())
+            modifier,
+            AttributeModifiersUtil.argument(modifier, typed.attribute(), typed.argument())
         );
     }
 

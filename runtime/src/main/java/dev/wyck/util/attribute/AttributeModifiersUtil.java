@@ -6,7 +6,9 @@ import dev.wyck.environment.attribute.modifier.AttributeModification;
 import dev.wyck.environment.attribute.modifier.AttributeOperation;
 import dev.wyck.environment.attribute.modifier.GrayBlend;
 import dev.wyck.wrapper.Wrapper;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.attribute.modifier.AttributeModifier;
+import net.minecraft.world.attribute.modifier.ColorModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
@@ -67,6 +69,7 @@ public final class AttributeModifiersUtil {
 
     /**
      * Converts an API operation argument to its Minecraft representation.
+     * @param modifier the Minecraft modifier taking the argument
      * @param attribute the attribute whose converter handles ordinary arguments
      * @param argument the API argument
      * @return the Minecraft argument
@@ -74,9 +77,16 @@ public final class AttributeModifiersUtil {
      * @param <A> the argument type of the modifier
      */
     @SuppressWarnings("unchecked")
-    public static <V, A> A argument(EnvironmentAttribute<V> attribute, Object argument) {
+    public static <V, A> A argument(AttributeModifier<V, A> modifier, EnvironmentAttribute<V> attribute, Object argument) {
         if (argument instanceof AlphaValue || argument instanceof GrayBlend) {
             return ((Wrapper) argument).asHandle();
+        }
+        // color modifiers take their own color form, which need not be the attribute's
+        if (modifier instanceof ColorModifier.ArgbModifier<?>) {
+            return (A) ARGB.vector4fFromARGB32((Integer) argument);
+        }
+        if (modifier instanceof ColorModifier.RgbModifier<?>) {
+            return (A) ARGB.vector3fFromRGB24((Integer) argument);
         }
         attribute.value((V) argument);
         return attribute.minecraftValue();

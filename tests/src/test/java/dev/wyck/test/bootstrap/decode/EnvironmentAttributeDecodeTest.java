@@ -16,6 +16,9 @@ import dev.wyck.environment.particle.ParticleTypes;
 import dev.wyck.environment.sounds.AmbientSounds;
 import dev.wyck.environment.sounds.BackgroundMusic;
 import dev.wyck.keys.ResourceKey;
+import dev.wyck.level.dimension.timeline.AttributeTrack;
+import dev.wyck.level.dimension.timeline.Easing;
+import dev.wyck.level.dimension.timeline.Keyframe;
 import dev.wyck.test.bootstrap.MinecraftBootstrap;
 import dev.wyck.util.BootstrapSafeMinecraftRegistries;
 import net.minecraft.core.registries.BuiltInRegistries;
@@ -227,6 +230,46 @@ class EnvironmentAttributeDecodeTest {
         assertEquals(0.4F, gray.argument().brightness());
         assertEquals(0.6F, gray.argument().factor());
         assertEquals(modified, EnvironmentAttributesUtil.toNms(decoded));
+    }
+
+    /** Alpha blending an rgb color takes an argb color, and adding to an argb color takes an rgb one. */
+    @Test
+    void colorModifierArgumentsUseTheModifiersColorForm() {
+        net.minecraft.world.attribute.EnvironmentAttributeMap modified = minecraftMap()
+            .modify(net.minecraft.world.attribute.EnvironmentAttributes.FOG_COLOR,
+                ColorModifier.ALPHA_BLEND_RGB, ARGB.vector4fFromARGB32(0x80FF0000))
+            .modify(net.minecraft.world.attribute.EnvironmentAttributes.CLOUD_COLOR,
+                ColorModifier.ADD_ARGB, ARGB.vector3fFromRGB24(0x102030))
+            .build();
+
+        EnvironmentAttributeMap decoded = EnvironmentAttributeMap.decode(modified);
+        EnvironmentAttributeMap.Modification<Integer, Integer> alpha = decoded.modification(EnvironmentAttributes.FOG_COLOR);
+        EnvironmentAttributeMap.Modification<Integer, Integer> add = decoded.modification(EnvironmentAttributes.CLOUD_COLOR);
+
+        assertNotNull(alpha);
+        assertEquals(AttributeOperation.ALPHA_BLEND, alpha.operation());
+        assertEquals(0x80FF0000, alpha.argument());
+
+        assertNotNull(add);
+        assertEquals(AttributeOperation.ADD, add.operation());
+        assertEquals(0x102030, add.argument());
+        assertEquals(modified, EnvironmentAttributesUtil.toNms(decoded));
+    }
+
+    @Test
+    void colorModifierArgumentsEncodeInTheModifiersColorForm() {
+        EnvironmentAttributeMap attributes = EnvironmentAttributeMap.builder()
+            .modify(EnvironmentAttributes.FOG_COLOR, AttributeOperation.ALPHA_BLEND, 0x80FF0000)
+            .build();
+        var entry = EnvironmentAttributesUtil.toNms(attributes).get(net.minecraft.world.attribute.EnvironmentAttributes.FOG_COLOR);
+        assertNotNull(entry);
+        assertEquals(ColorModifier.ALPHA_BLEND_RGB, entry.modifier());
+        assertEquals(ARGB.vector4fFromARGB32(0x80FF0000), entry.argument());
+
+        net.minecraft.world.timeline.AttributeTrack<?, ?> track = AttributeTrack.of(
+            EnvironmentAttributes.FOG_COLOR.get(), AttributeOperation.ALPHA_BLEND, Easing.of("linear"),
+            List.of(Keyframe.of(0, 0x80FF0000))).asHandle();
+        assertEquals(ARGB.vector4fFromARGB32(0x80FF0000), track.argumentTrack().keyframes().getFirst().value());
     }
 
     /** {@code defaultValue()} used to throw for anything that was not a number, boolean or string. */

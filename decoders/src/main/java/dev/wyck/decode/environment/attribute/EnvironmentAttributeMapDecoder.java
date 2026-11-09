@@ -8,8 +8,12 @@ import dev.wyck.environment.attribute.modifier.AttributeOperation;
 import dev.wyck.environment.attribute.modifier.GrayBlend;
 import dev.wyck.keys.ResourceKey;
 import dev.wyck.wrapper.decode.Decodable;
+import net.minecraft.util.ARGB;
 import net.minecraft.world.attribute.modifier.AttributeModifier;
+import net.minecraft.world.attribute.modifier.ColorModifier;
 import org.jetbrains.annotations.ApiStatus;
+import org.joml.Vector3fc;
+import org.joml.Vector4fc;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Comparator;
@@ -72,6 +76,14 @@ public final class EnvironmentAttributeMapDecoder implements Decodable<Environme
         } else if (argument instanceof net.minecraft.world.attribute.modifier.ColorModifier.BlendToGray gray) {
             wrapped = EnvironmentAttribute.decode(attribute, attribute.defaultValue());
             decodedArgument = GrayBlend.of(gray.brightness(), gray.factor());
+        } else if (entry.modifier() instanceof ColorModifier.ArgbModifier<?>) {
+            // an argb argument, even on an rgb attribute (alpha_blend)
+            wrapped = EnvironmentAttribute.decode(attribute, attribute.defaultValue());
+            decodedArgument = ARGB.colorFromVector4f((Vector4fc) argument);
+        } else if (entry.modifier() instanceof ColorModifier.RgbModifier<?>) {
+            // an rgb argument, even on an argb attribute (add, subtract)
+            wrapped = EnvironmentAttribute.decode(attribute, attribute.defaultValue());
+            decodedArgument = ARGB.colorFromVector3f((Vector3fc) argument) & 0xFFFFFF;
         } else {
             wrapped = EnvironmentAttribute.decode(attribute, argument);
             decodedArgument = wrapped.value();

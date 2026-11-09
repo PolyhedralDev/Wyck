@@ -16,6 +16,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.KeyframeTrack;
 import net.minecraft.world.attribute.EnvironmentAttribute;
+import net.minecraft.world.attribute.modifier.AttributeModifier;
 import org.jetbrains.annotations.ApiStatus;
 import org.jspecify.annotations.NullMarked;
 
@@ -63,18 +64,13 @@ public record ComposedTimelineImpl(
         @SuppressWarnings("unchecked")
         AttributeTrack<Value> typedTrack = (AttributeTrack<Value>) track;
         var modifier = AttributeModifiersUtil.<Value, Argument>modifier(typedTrack);
-        builder.addModifierTrack(nms, modifier, keyframes -> fill(keyframes, track));
+        builder.addModifierTrack(nms, modifier, keyframes -> fill(keyframes, modifier, typedTrack));
     }
 
-    private static <A> void fill(KeyframeTrack.Builder<A> keyframes, AttributeTrack<?> track) {
+    private static <V, A> void fill(KeyframeTrack.Builder<A> keyframes, AttributeModifier<V, A> modifier, AttributeTrack<V> track) {
         keyframes.setEasing(track.easing().asHandle());
         for (Keyframe<?> keyframe : track.keyframes()) {
-            keyframes.addKeyframe(keyframe.ticks(), argument(track, keyframe.value()));
+            keyframes.addKeyframe(keyframe.ticks(), AttributeModifiersUtil.argument(modifier, track.attribute(), keyframe.value()));
         }
-    }
-
-    @SuppressWarnings("unchecked")
-    private static <V, A> A argument(AttributeTrack<V> track, Object value) {
-        return AttributeModifiersUtil.argument(track.attribute(), value);
     }
 }

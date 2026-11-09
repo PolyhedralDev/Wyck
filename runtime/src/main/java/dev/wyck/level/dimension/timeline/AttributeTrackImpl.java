@@ -26,7 +26,7 @@ public record AttributeTrackImpl<V, A>(
 
         keyframes.setEasing(easing.asHandle());
         for (Keyframe<?> keyframe : this.keyframes) {
-            keyframes.addKeyframe(keyframe.ticks(), AttributeModifiersUtil.argument(this.attribute, keyframe.value()));
+            keyframes.addKeyframe(keyframe.ticks(), AttributeModifiersUtil.argument(modifier, this.attribute, keyframe.value()));
         }
         return new net.minecraft.world.timeline.AttributeTrack<>(modifier, keyframes.build());
     }
