@@ -128,6 +128,11 @@ publishing {
 
 
     repositories {
+        maven("https://maven.solo-studios.ca/snapshots/") {
+            name = "SoloStudiosSnapshots"
+            credentials(PasswordCredentials::class)
+        }
+
         if (repo == null || user == null || pass == null) return@repositories
 
         maven {

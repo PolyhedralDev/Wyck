@@ -57,13 +57,14 @@ tasks.jar {
 
 fun gitShortCommitHash(): String =
     try {
-        ProcessBuilder("git", "rev-parse", "--short", "HEAD")
+        ProcessBuilder("git", "rev-parse", "HEAD")
             .redirectErrorStream(true)
             .start()
             .inputStream
             .bufferedReader(Charset.defaultCharset())
             .readText()
             .trim()
+            .take(8)
             .ifBlank { "none" }
     } catch (e: Exception) {
         e.printStackTrace()
