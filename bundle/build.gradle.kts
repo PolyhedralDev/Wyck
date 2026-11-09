@@ -1,5 +1,7 @@
 import com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar
 
+group = "com.dfsek.wyck"
+
 val bundledSourceProjects = listOf(":api")
 
 data class ModulePublication(
