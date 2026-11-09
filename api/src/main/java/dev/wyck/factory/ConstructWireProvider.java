@@ -62,7 +62,13 @@ public final class ConstructWireProvider<F> extends WireProvider<F> {
      */
     @AsOf("2.4.1")
     public F construct(@Nullable Object... args) {
-        Constructor<? extends F> ctor = cachedCtors.computeIfAbsent(args.length, n -> findCtor(args));
+        Constructor<? extends F> ctor = cachedCtors.get(args.length);
+        if (ctor == null) {
+            // resolved outside the map: loading the class can initialize code that constructs through this provider
+            ctor = findCtor(args);
+            Constructor<? extends F> cached = cachedCtors.putIfAbsent(args.length, ctor);
+            if (cached != null) ctor = cached;
+        }
         try {
             return ctor.newInstance(args);
         } catch (ReflectiveOperationException e) {
